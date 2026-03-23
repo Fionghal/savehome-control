@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+{% if message %}<div class="alert">{{ message }}</div>{% endif %}
+<div class="grid cols-4">
+  <div class="card stat"><div class="stat-num">{{ data.blocked_domains }}</div><div>Aktivní blokované domény</div></div>
+  <div class="card stat"><div class="stat-num">{{ data.blocked_apps }}</div><div>Aktivní položky aplikací</div></div>
+  <div class="card stat"><div class="stat-num">{{ data.today_events }}</div><div>Dnešní logované události</div></div>
+  <div class="card stat"><div class="stat-num">{{ data.blocked_today }}</div><div>Dnešní blokace a varování</div></div>
+</div>
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Přístup v síti</h2>
+    <p>Lokálně: <strong>http://127.0.0.1:{{ data.port }}</strong></p>
+    <p>V síti: <strong>http://{{ data.local_ip }}:{{ data.port }}</strong></p>
+    <p class="muted">Pouze ve stejné síti. Neotvírat port do internetu.</p>
+  </div>
+  <div class="card">
+    <h2>Ochrana aplikací</h2>
+    <p>Režim: <strong>{% if data.app_control_mode == 'whitelist' %}whitelist{% else %}blacklist{% endif %}</strong></p>
+    <p class="muted">Whitelist = povoleno jen to, co je v seznamu aplikací. Blacklist = blokují se jen vybrané procesy.</p>
+  </div>
+</div>
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Časová pravidla</h2>
+    <p><strong>{{ data.rule_summary }}</strong></p>
+    <p>Globální pravidlo: {% if data.rules.enabled %}{{ data.rules.block_start }} – {{ data.rules.block_end }}{% else %}vypnuto{% endif %}</p>
+    <p>Týdenní kalendář: {{ data.weekly_rules_count }} aktivních dnů</p>
+  </div>
+  <div class="card">
+    <h2>Autostart / watchdog</h2>
+    <p>{% if data.autostart.supported %}Stav autostartu: <strong>{% if data.autostart.enabled %}zapnuto{% else %}vypnuto{% endif %}</strong>{% else %}{{ data.autostart.message }}{% endif %}</p>
+    <p>Watchdog: <strong>{% if data.watchdog_enabled == '1' %}zapnutý{% else %}vypnutý{% endif %}</strong></p>
+    <a class="button-link" href="/settings">Otevřít nastavení</a>
+  </div>
+</div>
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Dočasné odblokování celé ochrany</h2>
+    {% if data.temp_unlock.active %}
+      <div class="alert">Dočasně povoleno do <strong>{{ data.temp_unlock.until }}</strong>{% if data.temp_unlock.reason %} – {{ data.temp_unlock.reason }}{% endif %}</div>
+      <form method="post" action="/protection/resume"><button type="submit" class="danger">Okamžitě znovu zapnout ochranu</button></form>
+    {% else %}
+      <form method="post" action="/protection/pause" class="form-grid two">
+        <label>Počet minut
+          <input type="number" name="minutes" min="1" max="720" value="30" required>
+        </label>
+        <label>Důvod
+          <input name="reason" value="Dočasně povoleno rodičem">
+        </label>
+        <button type="submit">Dočasně odblokovat</button>
+      </form>
+      <p class="muted">Pozastaví blokaci aplikací i časových pravidel na zadanou dobu.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Dočasně povolené aplikace</h2>
+    {% if data.temp_allowed_apps %}
+      <ul class="compact-list">
+        {% for item in data.temp_allowed_apps %}
+        <li><strong>{{ item.process_name }}</strong> do {{ item.expires_at }}{% if item.reason %} – {{ item.reason }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Žádná aplikace není dočasně povolena.</p>
+    {% endif %}
+    <a class="button-link secondary" href="/apps">Správa aplikací</a>
+  </div>
+</div>
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Aktivita za posledních 7 dní</h2>
+    {% if data.chart_days %}
+    <div class="mini-chart">
+      {% for item in data.chart_days %}
+      <div class="mini-col-wrap">
+        <div class="mini-col" style="height: {{ item.height }}px" title="{{ item.day }} | celkem {{ item.total }} | blokace {{ item.blocked }} | varování {{ item.warnings }}"></div>
+        <div class="mini-col-label">{{ item.day[5:] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="muted">Sloupce ukazují celkový počet logovaných událostí za jednotlivé dny.</p>
+    {% else %}
+    <p class="muted">Zatím nejsou k dispozici žádná data.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Nejčastěji blokované položky</h2>
+    {% if data.top_items %}
+      {% for item in data.top_items %}
+      <div class="bar-row">
+        <div class="bar-label">{{ item.subject }} <span class="muted">({{ item.event_type }})</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ item.width }}%"></div></div>
+        <div class="bar-count">{{ item.count }}×</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">Zatím nebyla zaznamenána žádná blokace.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="card mt">
+  <h2>Spouštění s watchdogem</h2>
+  <p class="muted">Pro lepší ochranu proti vypnutí spouštěj aplikaci přes <code>python run_guarded.py</code>. Pokud hlavní proces spadne nebo ho někdo ukončí, watchdog ho znovu spustí.</p>
+  <p class="muted">Na Linuxu je přiložen i vzorový <code>guardian.service</code> pro systemd.</p>
+</div>
+{% endblock %}

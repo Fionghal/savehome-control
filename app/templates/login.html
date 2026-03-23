@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h1>Přihlášení správce</h1>
+  {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+  <form method="post" action="/login" class="form-grid">
+    <label>Uživatelské jméno
+      <input name="username" required value="admin">
+    </label>
+    <label>Heslo
+      <input name="password" type="password" required>
+    </label>
+    <button type="submit">Přihlásit</button>
+  </form>
+  <p class="muted">Výchozí přihlášení: admin / admin123</p>
+</div>
+{% endblock %}

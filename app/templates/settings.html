@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Nastavení</h1>
+{% if message %}<div class="alert">{{ message | replace('+', ' ') }}</div>{% endif %}
+<div class="grid cols-2">
+  <div class="card">
+    <h2>Změna admin účtu</h2>
+    <form method="post" action="/settings/change-password" class="form-grid">
+      <label>Nové uživatelské jméno
+        <input name="username" required>
+      </label>
+      <label>Nové heslo
+        <input name="password" type="password" required>
+      </label>
+      <button type="submit">Uložit</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Přístup v síti</h2>
+    <p><strong>http://{{ local_ip }}:{{ port }}</strong></p>
+    <p class="muted">Pouze v domácí / firemní síti. Middleware odmítá přístupy mimo localhost a privátní LAN.</p>
+    <p class="muted">Lokální správa z tohoto PC může běžet i přes <code>python -m app.desktop_admin</code>.</p>
+  </div>
+</div>
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Automatický start po přihlášení</h2>
+    <p>
+      {% if autostart.supported %}
+        Stav: <strong>{% if autostart.enabled %}zapnuto{% else %}vypnuto{% endif %}</strong>
+      {% else %}
+        {{ autostart.message }}
+      {% endif %}
+    </p>
+    {% if autostart.supported %}
+    <div class="toolbar-inline">
+      <form method="post" action="/settings/autostart/install"><button type="submit">Zapnout autostart</button></form>
+      <form method="post" action="/settings/autostart/remove"><button type="submit" class="secondary">Vypnout autostart</button></form>
+    </div>
+    <p class="muted">Na Windows se vytvoří úloha v Plánovači úloh. Doporučeno spouštět jako správce.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Lokální UI</h2>
+    <form method="post" action="/settings/ui" class="form-grid">
+      <label class="inline-check"><input type="checkbox" name="tray_enabled" {% if tray_enabled == '1' %}checked{% endif %}> Zapnout systémovou ikonu v tray</label>
+      <label class="inline-check"><input type="checkbox" name="open_browser_on_start" {% if open_browser_on_start == '1' %}checked{% endif %}> Otevřít web po spuštění programu</label>
+      <label class="inline-check"><input type="checkbox" name="watchdog_enabled" {% if watchdog_enabled == '1' %}checked{% endif %}> Povolit watchdog restart po pádu / ukončení</label>
+      <button type="submit">Uložit UI nastavení</button>
+    </form>
+    <p class="muted">Tray ikona vyžaduje balíčky pystray a Pillow. Pokud nejsou nainstalované, program poběží dál i bez ikony.</p>
+  </div>
+</div>
+{% endblock %}

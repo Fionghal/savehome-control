@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Správa aplikací</h1>
+{% if message %}<div class="alert">{{ message }}</div>{% endif %}
+<div class="grid cols-2">
+  <div class="card">
+    <h2>Režim ochrany aplikací</h2>
+    <form method="post" action="/apps/mode" class="form-grid">
+      <label><input type="radio" name="app_control_mode" value="blacklist" {% if app_control_mode == 'blacklist' %}checked{% endif %}> Blacklist</label>
+      <label><input type="radio" name="app_control_mode" value="whitelist" {% if app_control_mode == 'whitelist' %}checked{% endif %}> Whitelist</label>
+      <button type="submit">Uložit režim</button>
+    </form>
+    <p class="muted">Blacklist: blokují se jen aplikace ze seznamu. Whitelist: povoleny jsou jen aplikace ze seznamu, ostatní se zavřou. Systémové procesy jsou ponechány běžet.</p>
+  </div>
+  <div class="card">
+    <h2>{% if app_control_mode == 'whitelist' %}Povolené aplikace{% else %}Zakázané aplikace{% endif %}</h2>
+    <form method="post" action="/apps/add" class="form-grid three">
+      <label>Název procesu
+        <input name="process_name" placeholder="např. steam.exe" required>
+      </label>
+      <label>Poznámka
+        <input name="note" placeholder="např. hry, po večerce zakázat">
+      </label>
+      <label class="inline-check"><input type="checkbox" name="enabled" checked> Aktivní</label>
+      <button type="submit">Uložit</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Dočasně povolené aplikace</h2>
+    <form method="post" action="/apps/allow-temporary" class="form-grid three">
+      <label>Název procesu
+        <input name="process_name" placeholder="např. steam.exe" required>
+      </label>
+      <label>Počet minut
+        <input type="number" name="minutes" min="1" max="720" value="30" required>
+      </label>
+      <label>Důvod
+        <input name="reason" value="Dočasně povoleno rodičem">
+      </label>
+      <button type="submit">Povolit dočasně</button>
+    </form>
+    <p class="muted">Hodí se třeba když chceš povolit konkrétní hru jen na omezený čas, aniž bys vypínal celou ochranu.</p>
+  </div>
+  <div class="card">
+    <h2>Aktivní dočasná povolení</h2>
+    {% if temp_allowed_apps %}
+    <table>
+      <thead><tr><th>Proces</th><th>Do kdy</th><th>Důvod</th><th>Akce</th></tr></thead>
+      <tbody>
+        {% for row in temp_allowed_apps %}
+        <tr>
+          <td>{{ row.process_name }}</td>
+          <td>{{ row.expires_at }}</td>
+          <td>{{ row.reason }}</td>
+          <td class="actions">
+            <form method="post" action="/apps/revoke-temporary/{{ row.process_name }}"><button class="danger">Zrušit</button></form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Momentálně není aktivní žádné dočasné povolení.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mt">
+  <table>
+    <thead><tr><th>Proces</th><th>Poznámka</th><th>Aktivní</th><th>Akce</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.process_name }}</td>
+        <td>{{ row.note }}</td>
+        <td>{% if row.enabled %}Ano{% else %}Ne{% endif %}</td>
+        <td class="actions">
+          <form method="post" action="/apps/toggle/{{ row.id }}"><button>{% if row.enabled %}Vypnout{% else %}Zapnout{% endif %}</button></form>
+          <form method="post" action="/apps/delete/{{ row.id }}" onsubmit="return confirm('Smazat položku?');"><button class="danger">Smazat</button></form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

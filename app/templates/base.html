@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guardian LAN</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Guardian LAN</div>
+    {% if request.session.get('admin_user') %}
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/domains">Domény</a>
+      <a href="/apps">Aplikace</a>
+      <a href="/time">Časová pravidla</a>
+      <a href="/logs">Logy</a>
+      <a href="/settings">Nastavení</a>
+      <a href="/logout">Odhlásit</a>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

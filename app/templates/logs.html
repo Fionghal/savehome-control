@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Logy</h1>
+<div class="card">
+  <form method="get" action="/logs" class="form-grid logs-filter">
+    <label>Typ
+      <select name="event_type">
+        <option value="">Vše</option>
+        {% for t in ['APP','WEB','TIME','SYSTEM'] %}
+        <option value="{{ t }}" {% if filters.event_type == t %}selected{% endif %}>{{ t|event_type_label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Akce
+      <input name="action" value="{{ filters.action }}" placeholder="např. BLOCKED">
+    </label>
+    <label>Hledat
+      <input name="q" value="{{ filters.q }}" placeholder="subjekt, důvod, detail">
+    </label>
+    <label>Od
+      <input type="date" name="date_from" value="{{ filters.date_from }}">
+    </label>
+    <label>Do
+      <input type="date" name="date_to" value="{{ filters.date_to }}">
+    </label>
+    <label>Řadit podle
+      <select name="sort_by">
+        {% for s in ['ts','event_type','subject','action','windows_user'] %}
+        <option value="{{ s }}" {% if filters.sort_by == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Směr
+      <select name="sort_dir">
+        <option value="desc" {% if filters.sort_dir == 'desc' %}selected{% endif %}>Sestupně</option>
+        <option value="asc" {% if filters.sort_dir == 'asc' %}selected{% endif %}>Vzestupně</option>
+      </select>
+    </label>
+    <div class="toolbar-inline">
+      <button type="submit">Filtrovat</button>
+      <a class="button-link secondary" href="/logs/export?event_type={{ filters.event_type }}&action={{ filters.action }}&q={{ filters.q }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&sort_by={{ filters.sort_by }}&sort_dir={{ filters.sort_dir }}">Export CSV</a>
+    </div>
+  </form>
+</div>
+<div class="card mt">
+  <table>
+    <thead><tr><th>Čas</th><th>Typ</th><th>Subjekt</th><th>Akce</th><th>Důvod</th><th>Uživatel</th><th>Detail</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      {% set detail = row.details|link_info %}
+      <tr>
+        <td>{{ row.ts }}</td>
+        <td>{{ row.event_type|event_type_label }}</td>
+        <td>
+          {% if detail.href and row.event_type == 'WEB' %}
+            <a href="{{ detail.href }}" target="_blank" rel="noopener noreferrer">{{ row.subject }}</a>
+          {% else %}
+            {{ row.subject }}
+          {% endif %}
+        </td>
+        <td>{{ row.action|action_label }}</td>
+        <td>{{ row.reason }}</td>
+        <td>{{ row.windows_user }}</td>
+        <td>
+          {% if detail.href %}
+            <a href="{{ detail.href }}" target="_blank" rel="noopener noreferrer">Otevřít odkaz</a>
+          {% else %}
+            {{ row.details }}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

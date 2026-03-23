@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Časová pravidla</h1>
+{% if message %}<div class="alert">{{ message }}</div>{% endif %}
+<div class="card">
+  <h2>Globální pravidlo</h2>
+  <form method="post" action="/time/save" class="form-grid two">
+    <label>Čas varování
+      <input type="time" name="warning_time" value="{{ row.warning_time }}" required>
+    </label>
+    <label>Začátek blokace
+      <input type="time" name="block_start" value="{{ row.block_start }}" required>
+    </label>
+    <label>Konec blokace
+      <input type="time" name="block_end" value="{{ row.block_end }}" required>
+    </label>
+    <label class="inline-check"><input type="checkbox" name="enabled" {% if row.enabled %}checked{% endif %}> Aktivní globální pravidlo</label>
+    <label>Text varování
+      <input name="warning_message" value="{{ row.warning_message }}" required>
+    </label>
+    <label>Text blokace
+      <input name="block_message" value="{{ row.block_message }}" required>
+    </label>
+    <button type="submit">Uložit globální pravidlo</button>
+  </form>
+</div>
+
+<div class="card mt">
+  <h2>Týdenní kalendář</h2>
+  <form method="post" action="/time/save-weekly" class="form-grid">
+    <table>
+      <thead>
+        <tr>
+          <th>Den</th><th>Aktivní</th><th>Varování</th><th>Od</th><th>Do</th><th>Text varování</th><th>Text blokace</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for day in weekly_rows %}
+        <tr>
+          <td>{{ day.day_name }}</td>
+          <td><input type="checkbox" name="enabled_{{ day.day_of_week }}" {% if day.enabled %}checked{% endif %}></td>
+          <td><input type="time" name="warning_time_{{ day.day_of_week }}" value="{{ day.warning_time }}"></td>
+          <td><input type="time" name="block_start_{{ day.day_of_week }}" value="{{ day.block_start }}"></td>
+          <td><input type="time" name="block_end_{{ day.day_of_week }}" value="{{ day.block_end }}"></td>
+          <td><input name="warning_message_{{ day.day_of_week }}" value="{{ day.warning_message }}"></td>
+          <td><input name="block_message_{{ day.day_of_week }}" value="{{ day.block_message }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit">Uložit týdenní kalendář</button>
+  </form>
+  <p class="muted">Pokud je pro daný den aktivní týdenní pravidlo, má přednost před globálním pravidlem.</p>
+</div>
+{% endblock %}

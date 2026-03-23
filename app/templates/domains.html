@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Blacklist domén</h1>
+{% if message %}<div class="alert">{{ message }}</div>{% endif %}
+<div class="grid cols-2">
+  <div class="card">
+    <h2>Přidat / upravit doménu</h2>
+    <form method="post" action="/domains/add" class="form-grid">
+      <label>Doména
+        <input name="domain" placeholder="např. example.com" required>
+      </label>
+      <label>Poznámka / kategorie
+        <input name="note" placeholder="např. pornografie, hazard, malware">
+      </label>
+      <label class="inline-check"><input type="checkbox" name="enabled" checked> Aktivní blokace</label>
+      <button type="submit">Uložit</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Import CSV</h2>
+    <form method="post" action="/domains/import" enctype="multipart/form-data" class="form-grid">
+      <input type="file" name="file" accept=".csv" required>
+      <button type="submit">Importovat</button>
+    </form>
+    <p class="muted">CSV hlavička: <code>domain,note,enabled</code></p>
+  </div>
+</div>
+<div class="card mt">
+  <table>
+    <thead><tr><th>Doména</th><th>Poznámka</th><th>Aktivní</th><th>Akce</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.domain }}</td>
+        <td>{{ row.note }}</td>
+        <td>{% if row.enabled %}Ano{% else %}Ne{% endif %}</td>
+        <td class="actions">
+          <form method="post" action="/domains/toggle/{{ row.id }}"><button>{% if row.enabled %}Vypnout{% else %}Zapnout{% endif %}</button></form>
+          <form method="post" action="/domains/delete/{{ row.id }}" onsubmit="return confirm('Smazat položku?');"><button class="danger">Smazat</button></form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
